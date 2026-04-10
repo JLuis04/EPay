@@ -6,4 +6,5 @@ export type AppView =
   | "facturacion"
   | "clientes"
   | "transacciones"
-  | "reportes";
+  | "reportes"
+  | "carta_estatus";

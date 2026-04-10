@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopBar } from "./components/layout/TopBar";
 import { CartasHonorariosPage } from "./components/pages/CartasHonorariosPage";
+import { CartasEstatusPage } from "./components/pages/CartasEstatusPage";
 import { EstadisticasPage } from "./components/pages/EstadisticasPage";
 import { MisConsultasPage } from "./components/pages/MisConsultasPage";
 import { PlaceholderPage } from "./components/pages/PlaceholderPage";
@@ -10,6 +11,7 @@ import type { AppView } from "./navigation";
 
 function App() {
   const [activeView, setActiveView] = useState<AppView>("estadisticas");
+  const [activeCarta, setActiveCarta] = useState<1 | 2>(1);
   const [selected, setSelected] = useState<Transaction | null>(
     transactions[0] ?? null,
   );
@@ -22,6 +24,12 @@ function App() {
 
   const handleNavigate = (view: AppView) => {
     setActiveView(view);
+    setMobileMenuOpen(false);
+  };
+
+  const handleSelectCarta = (n: 1 | 2) => {
+    setActiveCarta(n);
+    setActiveView("carta_estatus");
     setMobileMenuOpen(false);
   };
 
@@ -41,6 +49,8 @@ function App() {
         onNavigate={handleNavigate}
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
+        activeCarta={activeCarta}
+        onSelectCarta={handleSelectCarta}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -57,7 +67,11 @@ function App() {
               onSelectTransaction={setSelected}
             />
           )}
-          {activeView === "cartas_aseguradora" && <CartasHonorariosPage />}
+          {activeView === "cartas_aseguradora" && (
+            <CartasHonorariosPage
+              onViewEstatus={() => handleNavigate("carta_estatus")}
+            />
+          )}
           {activeView === "mis_consultas" && <MisConsultasPage />}
           {activeView === "facturacion" && (
             <PlaceholderPage
@@ -81,6 +95,12 @@ function App() {
             <PlaceholderPage
               title="Reportes"
               description="Módulo en preparación."
+            />
+          )}
+          {activeView === "carta_estatus" && (
+            <CartasEstatusPage
+              cartaLabel={`Carta ${activeCarta}`}
+              initialStep={1}
             />
           )}
         </main>

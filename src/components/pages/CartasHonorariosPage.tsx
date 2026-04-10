@@ -25,9 +25,14 @@ function buildInitialVisibility(): Record<CartasTableColumnId, boolean> {
   return v;
 }
 
-function CartaRowActionsMenu({ row }: { row: CartaHonorarioRow }) {
+function CartaRowActionsMenu({
+  row,
+  onViewEstatus,
+}: {
+  row: CartaHonorarioRow;
+  onViewEstatus: () => void;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,19 +45,6 @@ function CartaRowActionsMenu({ row }: { row: CartaHonorarioRow }) {
     document.addEventListener("mousedown", down);
     return () => document.removeEventListener("mousedown", down);
   }, [menuOpen]);
-
-  useEffect(() => {
-    if (!detailOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDetailOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [detailOpen]);
 
   return (
     <>
@@ -78,79 +70,14 @@ function CartaRowActionsMenu({ row }: { row: CartaHonorarioRow }) {
               className="w-full px-3 py-2 text-left text-sm font-medium text-slate-800 hover:bg-slate-50"
               onClick={() => {
                 setMenuOpen(false);
-                setDetailOpen(true);
+                onViewEstatus();
               }}
             >
-              Detalle de la carta
+              Estatus
             </button>
           </div>
         )}
       </div>
-
-      {detailOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px]"
-            aria-label="Cerrar"
-            onClick={() => setDetailOpen(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="detalle-carta-titulo"
-            className="relative z-10 w-full max-w-md rounded-2xl border border-slate-100 bg-white p-6 shadow-xl"
-          >
-            <h3
-              id="detalle-carta-titulo"
-              className="text-lg font-semibold text-slate-900"
-            >
-              Detalle de la carta
-            </h3>
-            <dl className="mt-4 space-y-3 text-sm">
-              <div>
-                <dt className="text-slate-500">Paciente</dt>
-                <dd className="font-medium text-slate-900">{row.paciente}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Aseguradora</dt>
-                <dd className="font-medium text-slate-900">
-                  {row.aseguradora}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Estatus</dt>
-                <dd className="font-medium text-slate-900">
-                  {row.estatusLabel}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Total a reclamar</dt>
-                <dd className="font-medium text-slate-900">
-                  {row.totalReclamar}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Folio</dt>
-                <dd className="text-slate-800">{row.folio}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Fecha</dt>
-                <dd className="text-slate-800">{row.fecha}</dd>
-              </div>
-            </dl>
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setDetailOpen(false)}
-                className="rounded-lg bg-[#07c78f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#06b381]"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
@@ -222,7 +149,13 @@ function renderCell(row: CartaHonorarioRow, col: CartasTableColumnId) {
   }
 }
 
-export function CartasHonorariosPage() {
+type CartasHonorariosPageProps = {
+  onViewEstatus?: () => void;
+};
+
+export function CartasHonorariosPage({
+  onViewEstatus,
+}: CartasHonorariosPageProps = {}) {
   const [columnVisible, setColumnVisible] = useState<
     Record<CartasTableColumnId, boolean>
   >(buildInitialVisibility);
@@ -272,7 +205,7 @@ export function CartasHonorariosPage() {
         </button>
       </div>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {cartasHonorariosSummary.map((card) => (
           <article
             key={card.key}
@@ -399,7 +332,10 @@ export function CartasHonorariosPage() {
                   {visibleColumns.map((col) => (
                     <td key={col.id} className="py-3 pl-2 pr-2 align-middle">
                       {col.id === "acciones" ? (
-                        <CartaRowActionsMenu row={row} />
+                        <CartaRowActionsMenu
+                          row={row}
+                          onViewEstatus={onViewEstatus ?? (() => {})}
+                        />
                       ) : (
                         renderCell(row, col.id)
                       )}
